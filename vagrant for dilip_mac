@@ -1,0 +1,66 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+Vagrant.configure("2") do |config|
+
+config.vm.box = "bento/centos-7.2"
+config.vm.synced_folder '/Users/diliprampalepu/Downloads/Vagrant', '/vagrant'
+
+config.vm.define "node1" do |node1|
+node1.vm.box = "bento/centos-7.2"
+node1.vm.network "private_network", ip: "222.0.0.11"
+node1.vm.hostname = "node1"
+node1.vm.provider "virtualbox" do |vb|
+vb.memory = "512" ## in MB's
+vb.cpus = 1
+vb.gui = false
+end
+node1.vm.provision "shell", inline: <<-SHELL
+echo "Running pre boot commands"
+# Configure /etc/hosts file
+echo "" | sudo tee --append /etc/hosts 2> /dev/null && \
+echo "# Host config for Nodes" | sudo tee --append /etc/hosts 2> /dev/null && \
+echo "222.0.0.11 node1.anilankem.com node1" | sudo tee --append /etc/hosts 2> /dev/null && \
+echo "222.0.0.22 node2.anilankem.com node2" | sudo tee --append /etc/hosts 2> /dev/null
+echo ""
+echo "Run pre boot commands"
+echo "disabling selinux"
+sed -i 's/^\(SELINUX\s*=\s*\).*$/\1disabled/'
+/etc/selinux/config ;
+systemctl disable firewalld ;
+systemctl status firewalld ;
+systemctl stop firewalld ;
+ SHELL
+end
+config.vm.define "node2" do |node2|
+node2.vm.box = "bento/centos-7.2" #
+node2.vm.network "private_network", ip: "222.0.0.22"
+node2.vm.hostname = "node2"
+node2.vm.provider "virtualbox" do |vb|
+vb.memory = "512"
+vb.cpus = 1
+vb.gui = false
+end
+node2.vm.provision "shell", inline: <<-SHELL
+echo "Running pre boot commands"
+# Configure /etc/hosts file
+echo "" | sudo tee --append /etc/hosts 2>/dev/null && \
+echo "# Host config for Nodes" | sudo tee --
+append /etc/hosts 2> /dev/null && \
+echo "222.0.0.11 node1.anilankem.com node1"| sudo tee --append /etc/hosts 2> /dev/null && \
+echo "222.0.0.22 node2.anilankem.com node2"| sudo tee --append /etc/hosts 2> /dev/null
+echo ""
+echo "Run pre boot commands"
+# echo "sshd config file changes"
+# sed -i s/'PermitRootLogin no'/'\#PermitRootLogin no'/g /etc/ssh/sshd_config ;
+# sed -i s/'PasswordAuthentication no'/'PasswordAuthentication yes'/g /etc/ssh/sshd_config ;
+# echo "restarting sshd demon"
+# systemctl restart sshd
+echo "disabling selinux"
+sed -i 's/^\(SELINUX\s*=\s*\).*$/\1disabled/' /etc/selinux/config ;
+systemctl disable firewalld ;
+systemctl status firewalld ;
+systemctl stop firewalld ;
+ SHELL
+end
+end
+
